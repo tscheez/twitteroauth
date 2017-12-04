@@ -368,10 +368,7 @@ class TwitterOAuth extends Config
         $this->resetAttemptsNumber();
         $url = sprintf('%s/%s/%s.json', $host, self::API_VERSION, $path);
         $this->response->setApiPath($path);
-        $result = $this->oAuthRequest($url, $method, $parameters, $json);
-        $response = JsonDecoder::decode($result, $this->decodeJsonAsArray);
-        $this->response->setBody($response);
-        return $this->makeRequests($url, $method, $parameters);
+        return $this->makeRequests($url, $method, $parameters, $json);
     }
 
     /**
@@ -385,11 +382,11 @@ class TwitterOAuth extends Config
      *
      * @return array|object
      */
-    private function makeRequests($url, $method, array $parameters)
+    private function makeRequests($url, $method, array $parameters, $json)
     {
         do {
             $this->sleepIfNeeded();
-            $result = $this->oAuthRequest($url, $method, $parameters);
+            $result = $this->oAuthRequest($url, $method, $parameters, $json);
             $response = JsonDecoder::decode($result, $this->decodeJsonAsArray);
             $this->response->setBody($response);
             $this->attempts++;
