@@ -261,13 +261,18 @@ class TwitterOAuth extends Config
     public function upload($path, array $parameters = [], $chunked = false, $json = false)
     {
         if ($json) {
-          return $this->http('POST', self::UPLOAD_HOST, $path, $parameters, $json);;
+          return $this->http('POST', self::UPLOAD_HOST, $path, $parameters, $json);
         }
         if ($chunked) {
             return $this->uploadMediaChunked($path, $parameters);
         } else {
             return $this->uploadMediaNotChunked($path, $parameters);
         }
+    }
+
+    public function uploadStatus($path, array $parameters = [])
+    {
+          return $this->http('GET', self::UPLOAD_HOST, $path, $parameters, false);
     }
 
     /**
@@ -296,25 +301,18 @@ class TwitterOAuth extends Config
      */
     private function uploadMediaChunked($path, array $parameters)
     {
-
-        // Init
-        $init = $this->http('POST', self::UPLOAD_HOST, $path, [
-            'command' => 'INIT',
-            'media_type' => $parameters['media_type'],
-            'total_bytes' => filesize($parameters['media'])
-        ], false);
-
+        $init = $this->http('POST', self::UPLOAD_HOST, $path, $this->mediaInitParameters($parameters), false);
         // Append
         $segmentIndex = 0;
         $media = fopen($parameters['media'], 'rb');
-        while (!feof($media)) {
+        while (!feof($media))
+        {
             $this->http('POST', self::UPLOAD_HOST, 'media/upload', [
                 'command' => 'APPEND',
                 'media_id' => $init->media_id_string,
-                'segment_index' => $segment_index++,
-                'media_data' => base64_encode(fread($media, self::UPLOAD_CHUNK))
+                'segment_index' => $segmentIndex++,
+                'media_data' => base64_encode(fread($media, $this->chunkSize))
             ], false);
-
         }
         fclose($media);
         // Finalize
@@ -362,7 +360,7 @@ class TwitterOAuth extends Config
      *
      * @return array|object
      */
-    private function http($method, $host, $path, array $parameters, $json)
+    private function http($method, $host, $path, array $parameters, $json = false)
     {
         $this->resetLastResponse();
         $this->resetAttemptsNumber();
