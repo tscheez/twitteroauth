@@ -348,8 +348,8 @@ class TwitterOAuth extends Config
         if (isset($parameters['media_category'])) {
             $return['media_category'] = $parameters['media_category'];
         }
-        if (isset($parameters['media_category'])) {
-            $return['media_category'] = $parameters['media_category'];
+        if (isset($parameters['shared'])) {
+            $return['shared'] = $parameters['shared'];
         }
         return $return;
     }
